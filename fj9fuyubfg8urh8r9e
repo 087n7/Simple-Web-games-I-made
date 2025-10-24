@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Diagnostics Console</title>
+    <style>
+        /* =========================================
+        CSS STYLING FOR TERMINAL AESTHETIC
+        ========================================= */
+        body {
+            background-color: #000;
+            color: #00FF41; /* Classic green terminal text */
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden; /* Prevent scrolling */
+            font-size: 14px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #console-output {
+            flex-grow: 1;
+            overflow-y: auto;
+            white-space: pre-wrap; /* Preserve formatting but allow wrapping */
+            line-height: 1.5;
+            text-shadow: 0 0 5px #00cc00; /* Subtle glow effect */
+        }
+
+        #input-line {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #prompt {
+            color: #FF00FF; /* Bright magenta for prompt */
+            margin-right: 5px;
+        }
+
+        #cursor {
+            background-color: #00FF41;
+            width: 8px;
+            height: 1em;
+            display: inline-block;
+            animation: blink 1s step-end infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+        }
+
+        @keyframes blink {
+            from, to { visibility: hidden; }
+            50% { visibility: visible; }
+        }
+
+        /* Styling for specific simulated output */
+        .error { color: #FF0000; }
+        .success { color: #00FFFF; }
+        .warning { color: #FFFF00; }
+        .progress-bar {
+            background-color: #333;
+            border: 1px solid #00FF41;
+            width: 100%;
+            height: 20px;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #00FF41;
+            transition: width 0.5s linear;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="console-output">
+        <span class="warning">Initializing System Diagnostics...</span>
+        <br>
+        <span class="success">[+] Firewall status: OFFLINE</span>
+        <br>
+        <span class="error">[!] Access violation detected on port 21. Retrying...</span>
+        <br>
+        <span class="success">[+] Target system IP: 192.168.1.100 (ONLINE)</span>
+        <br>
+        <span class="warning">Attempting connection via SSH...</span>
+        <br><br>
+    </div>
+
+    <div id="input-line">
+        <span id="prompt">user@host:~$</span>
+        <span id="command-input"></span>
+        <span id="cursor"></span>
+    </div>
+
+    <script>
+        /* =========================================
+        JAVASCRIPT FOR SIMULATION INTERACTIVITY
+        ========================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            const output = document.getElementById('console-output');
+            const commandInput = document.getElementById('command-input');
+            const cursor = document.getElementById('cursor');
+            const prompt = document.getElementById('prompt');
+            const inputLine = document.getElementById('input-line');
+            let commandIndex = 0;
+            const commandText = "payload_exec.sh -f /tmp/data/sec_keys.bin -t /var/www/html/upload";
+            
+            // Function to scroll the output to the bottom
+            const scrollToBottom = () => {
+                output.scrollTop = output.scrollHeight;
+            };
+
+            // --- 1. Typing Simulation ---
+            const typeCommand = (callback) => {
+                if (commandIndex < commandText.length) {
+                    commandInput.textContent += commandText.charAt(commandIndex);
+                    commandIndex++;
+                    setTimeout(() => typeCommand(callback), 50); // Typing speed
+                } else {
+                    if (callback) setTimeout(callback, 500);
+                }
+            };
+
+            // --- 2. Execute Command and Append Output ---
+            const executeCommand = () => {
+                // Remove cursor and current input line from flow
+                inputLine.style.display = 'none';
+
+                // Append the completed command to the output history
+                output.innerHTML += `${prompt.outerHTML}${commandInput.textContent}\n`;
+                commandInput.textContent = ''; // Clear for next command
+
+                // Append initial execution message
+                output.innerHTML += `<span class="warning">Executing secure shell script payload_exec.sh...</span>\n`;
+                output.innerHTML += `<span class="success">Transfer session established. Starting data stream...</span>\n`;
+                scrollToBottom();
+
+                // Start the progress bar simulation
+                setTimeout(startProgressBar, 1000);
+            };
+
+            // --- 3. Progress Bar Simulation ---
+            const startProgressBar = () => {
+                const progressBarHTML = `
+                    <div class="progress-bar">
+                        <div id="progress-fill" class="progress-fill" style="width: 0%;"></div>
+                    </div>
+                `;
+                output.innerHTML += progressBarHTML;
+                scrollToBottom();
+                
+                const fill = document.getElementById('progress-fill');
+                let progress = 0;
+                
+                const interval = setInterval(() => {
+                    progress += Math.floor(Math.random() * 5) + 1; // Random increment
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        setTimeout(completionMessage, 500);
+                    }
+                    fill.style.width = `${progress}%`;
+                    output.innerHTML += `TRANSFER: [${progress}%] - ${Math.floor(Math.random() * 500) + 10}KB/s\n`;
+                    scrollToBottom();
+                }, 200);
+            };
+
+            // --- 4. Completion Message ---
+            const completionMessage = () => {
+                output.innerHTML += `<span class="success">Transfer complete. 100% (23.4 MB) written to /var/www/html/upload.</span>\n`;
+                output.innerHTML += `<span class="warning">Cleaning up session...</span>\n`;
+                output.innerHTML += `<span class="error">SYSTEM SHUTDOWN INITIATED.</span>\n`;
+                scrollToBottom();
+                
+                // Final system crash effect (visual flicker)
+                setTimeout(systemCrash, 1000);
+            };
+            
+            // --- 5. Visual System Crash ---
+            const systemCrash = () => {
+                cursor.style.display = 'none';
+                let flickerCount = 0;
+                const flickerInterval = setInterval(() => {
+                    document.body.style.backgroundColor = (flickerCount % 2 === 0) ? '#000' : '#FF0000';
+                    document.body.style.color = (flickerCount % 2 === 0) ? '#00FF41' : '#FFFFFF';
+                    output.innerHTML += `<span class="error">FATAL KERNEL EXCEPTION: 0x0000000A</span>\n`;
+                    scrollToBottom();
+                    flickerCount++;
+
+                    if (flickerCount > 10) {
+                        clearInterval(flickerInterval);
+                        document.body.style.backgroundColor = '#000';
+                        document.body.style.color = '#FF0000';
+                        output.innerHTML += `<br><br>*** SYSTEM HALTED ***`;
+                        scrollToBottom();
+                    }
+                }, 100);
+            };
+
+            // Start the simulation flow
+            typeCommand(executeCommand);
+        });
+    </script>
+</body>
+</html>
